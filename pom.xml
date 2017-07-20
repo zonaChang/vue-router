@@ -1,0 +1,137 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>study.vue</groupId>
+  <artifactId>router</artifactId>
+  <packaging>war</packaging>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>router Maven Webapp</name>
+  <url>http://maven.apache.org</url>
+  
+  <properties>
+  	<project.environment>dev</project.environment>
+  </properties>
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+   	<dependency>
+		<groupId>ro.isdc.wro4j</groupId>
+		<artifactId>wro4j-core</artifactId>
+		<version>1.6.2</version>
+	</dependency>
+  </dependencies>
+  <build>
+  	<!-- 打出包的名字获取名字的一部分 -->
+    <finalName>router</finalName>
+  	 <filters>
+          <filter>
+              src/main/filters/config_filter_${project.environment}.properties
+          </filter>
+      </filters>
+
+      <resources>
+          <resource>
+              <directory>src/main/resources</directory>
+              <filtering>true</filtering>
+              <includes>
+                  <include>**/*.xml</include>
+              </includes>
+          </resource>
+      </resources>
+    	
+    <plugins>
+    	<!-- 压缩前端代码开始 start -->
+    	<!-- 1. 过滤掉原来的文件，否则最终打出来的包中会包含原来分开的文件如a.js, b.js, c.js 等  -->
+    	<plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-war-plugin</artifactId>
+            <version>2.4</version>
+            <executions>
+                <execution>
+                    <id>prepare-war</id>
+                    <phase>prepare-package</phase>
+                    <goals>
+                        <goal>exploded</goal>
+                    </goals>
+                </execution>
+            </executions>
+            <configuration>
+                <useCache>true</useCache>
+                <warSourceExcludes>app/sources/**/*.js,app/sources/**/*.css</warSourceExcludes>
+            </configuration>
+        </plugin>
+        
+        <!-- wro4j插件 -->
+   		<plugin>
+		    <groupId>ro.isdc.wro4j</groupId>
+		    <artifactId>wro4j-maven-plugin</artifactId>
+		    <version>1.6.2</version>
+		    <executions>
+		     <execution>
+		      <phase>compile</phase>
+		      <goals>
+		       <goal>run</goal>
+		      </goals>
+		     </execution>
+		    </executions>
+		    <configuration>
+		     <!-- wro.xml文件中定义的group的name属性， 注意：中间不能用空格除非wro中也有空格 -->
+		     <targetGroups>app,app.templates,css,vendor,init</targetGroups>
+		     <!-- 这个配置是告诉wro4j在打包静态资源的时候是否需要最小化文件,开发的时候可以设成false,方便调试 -->
+		     <minimize>true</minimize>
+		     <wroFile>src/main/resources/wro.xml</wroFile>
+		     <!-- 指定打包后文件存放位置 -->
+		     <jsDestinationFolder>${project.build.directory}/${project.build.finalName}/app/sources/js</jsDestinationFolder>
+		     <cssDestinationFolder>${project.build.directory}/${project.build.finalName}/app/sources/css</cssDestinationFolder>
+		     
+		     <!-- 设置压缩文件的命名策略， -->
+<!-- 		   <wroManagerFactory>com.cez.study.router.CustomWroManagerFactory</wroManagerFactory> -->
+		    </configuration>
+         </plugin>
+         
+         <!-- 压缩前端代码结束 end -->
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+                    <execution>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <target>
+                                <replace file="${project.build.directory}/${project.build.finalName}/app/sources/js/app.templates.js">
+                                    <replacetoken>'</replacetoken>
+                                    <replacevalue>\'</replacevalue>
+                                </replace>
+                                <!-- 替换模板文件中的符号 -->
+                                <replace file="${project.build.directory}/${project.build.finalName}/app/sources/js/app.templates.js">
+                                    <replacetoken>`</replacetoken>
+                                    <replacevalue>'</replacevalue>
+                                </replace>
+<!--                                g : 全局替换 Global replacement. Replace all occurrences found  -->
+<!-- 								i : 忽略大小写 Case Insensitive. Do not consider case in the match  -->
+<!-- 								m : 匹配多行 Multiline. Treat the string as multiple lines of input, using "^" and "$" as the start or end of any line, respectively, rather than start or end of string. -->
+<!-- 								s : 匹配单行 Singleline. Treat the string as a single line of input, using "." to match any character, including a newline, which normally, it would not match. -->
+                                <replaceregexp flags="mg" file="${project.build.directory}/${project.build.finalName}/app/sources/js/app.templates.js">
+                                    <regexp pattern="^([^A-Za-z\r\n\t].+)$" />
+                                    <!-- \1: regexp中小括号匹配到的第一个值 -->
+                                    <substitution expression="'\1" />
+                                </replaceregexp>
+                                <replaceregexp flags="mg" file="${project.build.directory}/${project.build.finalName}/app/sources/js/app.templates.js">
+                                    <regexp pattern="^(.+[^;])$" />
+                                    <substitution expression="\1'+" />
+                                </replaceregexp>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+    </plugins>
+  </build>
+</project>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<groups xmlns="http://www.isdc.ro/wro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.isdc.ro/wro wro.xsd">
+   
+    <group name="css">
+        <css>/sources/css/*.css</css>
+    </group>
+    
+	<!-- 注意库文件加载顺序 -->
+	<group name="vendor">
+		<js>/app/sources/js/vue/lib/vue.min.js</js>
+		<js>/app/sources/js/vue/lib/vue-router.min.js</js>
+		<js>/app/sources/js/vue/lib/vue-resource.min.js</js>
+	</group>
+	<!-- vuejs文件及路由文件 app-${js.version} -->
+    <group name="app">
+        <js>/app/sources/js/vue/js/components/*.js</js>
+    	<js>/app/sources/js/vue/js/router.js</js>
+    </group>
+    <!-- vuejs模板文件 -->
+    <group name="app.templates">
+    	<js>/app/sources/js/vue/js/templates/*.js</js>
+    </group>
+    <!-- vuejs 实例文件 -->
+    <group name="init">
+    	<js>/app/sources/js/vue/js/app.js</js>
+    </group>
+</groups>
